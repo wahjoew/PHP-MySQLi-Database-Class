@@ -2044,7 +2044,7 @@ class MysqliDb
      *
      * @return string
      */
-    protected function replacePlaceHolders($str, $vals)
+    /*protected function replacePlaceHolders($str, $vals)
     {
         $i = 1;
         $newStr = "";
@@ -2066,8 +2066,37 @@ class MysqliDb
         }
         $newStr .= $str;
         return $newStr;
+    }*/
+    protected function replacePlaceHolders($str, $vals)
+    {
+        $i = 1;
+        $newStr = "";
+    
+        if (empty($vals)) {
+            return $str;
+        }
+    
+        while ($pos = strpos($str, "?")) {
+           
+            $j = $i++;                 
+            if (!isset($vals[$j])) {    //here is the FIX
+                break;
+            }
+            $val = $vals[$j];
+    
+            if (is_object($val)) {
+                $val = '[object]';
+            }
+            if ($val === null) {
+                $val = 'NULL';
+            }
+            $newStr .= substr($str, 0, $pos) . "'" . $val . "'";
+            $str = substr($str, $pos + 1);
+        }
+    
+        $newStr .= $str;
+        return $newStr;
     }
-
     /**
      * Method returns last executed query
      *
