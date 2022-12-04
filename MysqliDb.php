@@ -551,14 +551,15 @@ class MysqliDb
      * @return string Contains the returned rows from the query.
      */
     public function rawAddPrefix($query){
-        $query = str_replace(PHP_EOL, '', $query);
-        $query = preg_replace('/\s+/', ' ', $query);
-        preg_match_all("/(from|into|update|join|describe) [\\'\\´]?([a-zA-Z0-9_-]+)[\\'\\´]?/i", $query, $matches);
-        list($from_table, $from, $table) = $matches;
-
-        return str_replace($table[0], self::$prefix.$table[0], $query);
+        $query = preg_replace(['/[\r\n]+/', '/\s+/'], ' ', $query); // Replace multiple line breaks/spaces with a single space
+        if (preg_match_all("/(FROM|INTO|UPDATE|JOIN|DROP TABLE|TRUNCATE TABLE|CREATE TABLE|LOCK TABLE|FLASHBACK TABLE|ALTER TABLE|ANALYZE TABLE|DESCRIBE|EXPLAIN) [\\'\\´\\`]?(?!SELECT|DELETE|INSERT|REPLACE|UPDATE)([a-zA-Z0-9_-]+)[\\'\\´\\`]?/i", $query, $matches)) {
+            for ($i = 0; $i < count($matches[0]); $i++) {
+                list($from_table, $from, $table) = $matches;
+                $query = str_replace($table[$i], self::$prefix.$table[$i], $query);
+            }
+        }
+        return $query;
     }
-
     /**
      * Execute raw SQL query.
      *
